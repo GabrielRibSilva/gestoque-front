@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router'; 
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; 
-import { AuthService } from '../../../core/services/auth.service'; 
+import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { AuthService } from '../../../core/services/auth.service';
 import { finalize } from 'rxjs';
 
 import { CardModule } from 'primeng/card';
@@ -10,7 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api'; 
+import { MessageService } from 'primeng/api';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 
@@ -30,7 +30,7 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  providers: [MessageService] 
+  providers: [MessageService]
 })
 export class LoginComponent {
 
@@ -44,14 +44,14 @@ export class LoginComponent {
 
   constructor() {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]], 
-      senha: ['', [Validators.required]] 
+      email: ['', [Validators.required, Validators.email]],
+      senha: ['', [Validators.required]]
     });
   }
 
   public onSubmit(): void {
     if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched(); 
+      this.loginForm.markAllAsTouched();
       return;
     }
 
@@ -63,16 +63,13 @@ export class LoginComponent {
       )
       .subscribe({
         next: (response) => {
-
-          console.log('Login com sucesso', response);
-          this.router.navigate(['/']); 
+          this.router.navigate(['/dashboard']);
         },
         error: (err) => {
-
-          this.messageService.add({ 
-            severity: 'error', 
-            summary: 'Erro', 
-            detail: 'E-mail ou senha inválidos.' 
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: 'E-mail ou senha inválidos.'
           });
         }
       });
