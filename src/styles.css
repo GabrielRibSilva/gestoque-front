@@ -1,1 +1,30 @@
-/* You can add global styles to this file, and also import other style files */
+
+@import "primeng/resources/themes/lara-light-blue/theme.css"; 
+@import "primeng/resources/primeng.css";
+@import "primeicons/primeicons.css"; 
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--surface-ground); 
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container .p-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.p-password-input-full {
+  width: 100% !important;
+}
+.p-password {
+  width: 100%;
+}

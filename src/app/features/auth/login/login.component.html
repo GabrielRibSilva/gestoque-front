@@ -1,0 +1,59 @@
+<p-toast></p-toast>
+
+<div class="login-container">
+  <p-card header="Gestoque - Login" subheader="Acesse o sistema">
+    
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      
+      <div class="p-fluid">
+        <div class="field">
+          <p-inputGroup>
+            <p-inputGroupAddon>
+              <i class="pi pi-user"></i>
+            </p-inputGroupAddon>
+            <input 
+              pInputText 
+              placeholder="E-mail" 
+              formControlName="email" 
+              [class.ng-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+              [class.ng-dirty]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+            />
+          </p-inputGroup>
+          @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+            <small class="p-error block">E-mail é obrigatório e deve ser válido.</small>
+          }
+        </div>
+
+        <div class="field">
+          <p-inputGroup>
+            <p-inputGroupAddon>
+              <i class="pi pi-lock"></i>
+            </p-inputGroupAddon>
+            <p-password 
+              [feedback]="false" 
+              placeholder="Senha" 
+              formControlName="senha"
+              [toggleMask]="true"
+              styleClass="p-password-input-full"
+              inputStyleClass="p-password-input-full"
+              [class.ng-invalid]="loginForm.get('senha')?.invalid && loginForm.get('senha')?.touched"
+              [class.ng-dirty]="loginForm.get('senha')?.invalid && loginForm.get('senha')?.touched"
+            ></p-password>
+          </p-inputGroup>
+          @if (loginForm.get('senha')?.invalid && loginForm.get('senha')?.touched) {
+            <small class="p-error block">Senha é obrigatória.</small>
+          }
+        </div>
+      </div>
+
+      <p-button 
+        label="Entrar" 
+        type="submit" 
+        styleClass="w-full"
+        [loading]="isLoading"
+        [disabled]="loginForm.invalid || isLoading"
+      ></p-button>
+
+    </form>
+  </p-card>
+</div>
