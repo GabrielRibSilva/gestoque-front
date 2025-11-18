@@ -19,7 +19,7 @@ export const routes: Routes = [
       
       {
         path: 'usuarios',
-        loadComponent: () => import('./features/dashboard/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent), 
+        loadComponent: () => import('./features/admin/usuario-list/usuario-list.component').then(m => m.UsuarioListComponent),
         canActivate: [roleGuard],
         data: { role: PerfilUsuario.ADMIN }
       },
@@ -36,6 +36,7 @@ export const routes: Routes = [
         data: { role: PerfilUsuario.ADMIN }
       },
 
+      
       {
         path: 'vendas',
         loadComponent: () => import('./features/dashboard/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent), 
