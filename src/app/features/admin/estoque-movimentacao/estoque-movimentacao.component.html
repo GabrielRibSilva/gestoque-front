@@ -1,0 +1,28 @@
+<div class="flex justify-content-center">
+  <p-card header="Movimentação de Estoque" styleClass="w-30rem">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      
+      <div class="field">
+        <label class="block">Produto</label>
+        <p-dropdown [options]="produtos" formControlName="produtoId" [filter]="true" placeholder="Selecione o produto" styleClass="w-full"></p-dropdown>
+      </div>
+
+      <div class="field">
+        <label class="block">Tipo de Movimentação</label>
+        <p-dropdown [options]="tipos" formControlName="tipo" styleClass="w-full"></p-dropdown>
+      </div>
+
+      <div class="field">
+        <label class="block">Quantidade (Positivo ou Negativo)</label>
+        <p-inputNumber formControlName="quantidade" styleClass="w-full" class="w-full" [showButtons]="true"></p-inputNumber>
+      </div>
+
+      <div class="field">
+        <label class="block">Motivo / Observação</label>
+        <textarea pInputTextarea formControlName="motivo" rows="3" class="w-full"></textarea>
+      </div>
+
+      <p-button label="Confirmar Movimentação" type="submit" [disabled]="form.invalid" styleClass="w-full"></p-button>
+    </form>
+  </p-card>
+</div>
