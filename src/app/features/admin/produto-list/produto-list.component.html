@@ -1,0 +1,54 @@
+<div class="card">
+  <p-toolbar styleClass="mb-4">
+    <ng-template pTemplate="left">
+      <p-button label="Novo Produto" icon="pi pi-plus" (onClick)="openNew()"></p-button>
+    </ng-template>
+  </p-toolbar>
+
+  <p-table [value]="produtos" [loading]="loading" [rows]="10" [paginator]="true">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Código</th><th>Nome</th><th>Categoria</th><th>Preço</th><th>Estoque</th><th>Ações</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-p>
+      <tr>
+        <td>{{p.codigoProduto}}</td>
+        <td>{{p.nome}}</td>
+        <td>{{p.categoria}}</td>
+        <td>{{p.precoUnitario | currency:'BRL'}}</td>
+        <td><p-tag [value]="p.quantidadeEstoque" [severity]="getSeverity(p.quantidadeEstoque)"></p-tag></td>
+        <td>
+          <p-button icon="pi pi-pencil" styleClass="p-button-rounded p-button-text" (onClick)="edit(p)"></p-button>
+          <p-button icon="pi pi-trash" styleClass="p-button-rounded p-button-text p-button-danger" (onClick)="delete(p)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [(visible)]="produtoDialog" [modal]="true" header="Detalhes do Produto" [style]="{width: '400px'}" class="p-fluid">
+  <form [formGroup]="produtoForm">
+    <div class="field">
+      <label>Código (SKU)</label>
+      <input pInputText formControlName="codigoProduto" />
+    </div>
+    <div class="field">
+      <label>Nome</label>
+      <input pInputText formControlName="nome" />
+    </div>
+    <div class="field">
+      <label>Categoria</label>
+      <input pInputText formControlName="categoria" />
+    </div>
+    <div class="field">
+      <label>Preço Unitário</label>
+      <p-inputNumber formControlName="precoUnitario" mode="currency" currency="BRL" locale="pt-BR"></p-inputNumber>
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text" (onClick)="produtoDialog=false"></p-button>
+    <p-button label="Salvar" icon="pi pi-check" (onClick)="save()" [disabled]="produtoForm.invalid"></p-button>
+  </ng-template>
+</p-dialog>
+<p-confirmDialog></p-confirmDialog>
