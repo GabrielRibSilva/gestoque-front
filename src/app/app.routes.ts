@@ -5,6 +5,7 @@ import { MainLayoutComponent } from './core/layout/main-layout/main-layout.compo
 import { DashboardHomeComponent } from './features/dashboard/dashboard-home/dashboard-home.component';
 import { PerfilUsuario } from './core/models/auth.model';
 import { ProdutoListComponent } from './features/admin/produto-list/produto-list.component';
+import { EstoqueMovimentacaoComponent } from './features/admin/estoque-movimentacao/estoque-movimentacao.component';
 
 export const routes: Routes = [
   {
@@ -57,6 +58,11 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { role: PerfilUsuario.ADMIN }
       },
+      
+      {
+        path: 'estoque',
+        loadComponent: () => import('./features/admin/estoque-movimentacao/estoque-movimentacao.component').then(m => m.EstoqueMovimentacaoComponent),
+      }
 
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
