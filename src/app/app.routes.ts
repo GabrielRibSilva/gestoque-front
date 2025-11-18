@@ -1,35 +1,55 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard'; 
 import { MainLayoutComponent } from './core/layout/main-layout/main-layout.component';
 import { DashboardHomeComponent } from './features/dashboard/dashboard-home/dashboard-home.component';
+import { PerfilUsuario } from './core/models/auth.model';
 
 export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
-
-
   {
-    path: '', 
+    path: '',
     component: MainLayoutComponent,
-    canActivate: [authGuard], 
-    
+    canActivate: [authGuard],
     children: [
+      { path: 'dashboard', component: DashboardHomeComponent },
+      
       {
-        path: 'dashboard',
-        component: DashboardHomeComponent
+        path: 'usuarios',
+        loadComponent: () => import('./features/dashboard/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent), 
+        canActivate: [roleGuard],
+        data: { role: PerfilUsuario.ADMIN }
       },
       {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full'
-      }
+        path: 'produtos',
+        loadComponent: () => import('./features/dashboard/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent), 
+        canActivate: [roleGuard],
+        data: { role: PerfilUsuario.ADMIN }
+      },
+      {
+        path: 'estoque',
+        loadComponent: () => import('./features/dashboard/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent), 
+        canActivate: [roleGuard],
+        data: { role: PerfilUsuario.ADMIN }
+      },
+
+      {
+        path: 'vendas',
+        loadComponent: () => import('./features/dashboard/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent), 
+        canActivate: [roleGuard],
+        data: { role: PerfilUsuario.OPERADOR }
+      },
+
+      {
+        path: 'relatorios',
+        loadComponent: () => import('./features/dashboard/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent) 
+      },
+
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
-
-  {
-    path: '**',
-    redirectTo: 'dashboard'
-  }
+  { path: '**', redirectTo: 'dashboard' }
 ];

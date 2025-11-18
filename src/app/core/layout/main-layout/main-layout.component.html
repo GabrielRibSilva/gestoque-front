@@ -1,1 +1,37 @@
-<p>main-layout works!</p>
+<div class="layout-wrapper">
+    
+    <div class="layout-topbar">
+        <p-toolbar>
+            <div class="p-toolbar-group-start">
+                <p-button icon="pi pi-bars" styleClass="p-button-text" (click)="sidebarVisible = !sidebarVisible"></p-button>
+                <h2 class="m-0 ml-3">Gestoque</h2>
+            </div>
+
+            <div class="p-toolbar-group-end">
+                <div class="flex align-items-center gap-2">
+                    <span class="font-bold">{{ sessao?.nome }}</span>
+                    <p-tag [value]="sessao?.perfil" [severity]="sessao?.perfil === 'ADMIN' ? 'danger' : 'info'"></p-tag>
+                    
+                    <p-menu #userMenu [model]="userMenuItems" [popup]="true"></p-menu>
+                    <p-avatar 
+                        icon="pi pi-user" 
+                        styleClass="cursor-pointer" 
+                        shape="circle"
+                        (click)="userMenu.toggle($event)">
+                    </p-avatar>
+                </div>
+            </div>
+        </p-toolbar>
+    </div>
+
+    <div class="layout-main-container">
+        
+        <div class="layout-sidebar" *ngIf="sidebarVisible">
+            <p-menu [model]="sidebarItems" styleClass="w-full border-none"></p-menu>
+        </div>
+
+        <div class="layout-content">
+            <router-outlet></router-outlet>
+        </div>
+    </div>
+</div>

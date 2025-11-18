@@ -1,18 +1,40 @@
-.layout-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+.layout-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
 }
 
-.app-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-left: 1rem;
+.layout-topbar {
+    z-index: 999;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.main-content {
-  flex-grow: 1;
-  padding: 1rem;
-  overflow-y: auto;
-  background-color: #f4f4f4; 
+.layout-main-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.layout-sidebar {
+    width: 250px;
+    background-color: var(--surface-overlay);
+    border-right: 1px solid var(--surface-border);
+    padding: 1rem 0;
+    overflow-y: auto;
+    flex-shrink: 0;
+    transition: width 0.2s;
+}
+
+.layout-content {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto; 
+    background-color: var(--surface-ground);
+}
+
+@media (max-width: 768px) {
+    .layout-sidebar {
+        display: none; 
+    }
 }
