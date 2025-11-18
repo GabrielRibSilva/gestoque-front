@@ -7,6 +7,7 @@ import { PerfilUsuario } from './core/models/auth.model';
 import { ProdutoListComponent } from './features/admin/produto-list/produto-list.component';
 import { EstoqueMovimentacaoComponent } from './features/admin/estoque-movimentacao/estoque-movimentacao.component';
 import { CaixaVendaComponent } from './features/operador/caixa-venda/caixa-venda.component';
+import { RelatoriosComponent } from './features/relatorios/relatorios.component';
 
 export const routes: Routes = [
   {
@@ -64,12 +65,15 @@ export const routes: Routes = [
         path: 'estoque',
         loadComponent: () => import('./features/admin/estoque-movimentacao/estoque-movimentacao.component').then(m => m.EstoqueMovimentacaoComponent),
       },
-      
+
       {
         path: 'vendas',
         loadComponent: () => import('./features/operador/caixa-venda/caixa-venda.component').then(m => m.CaixaVendaComponent),
       },
-
+      {
+        path: 'relatorios',
+        loadComponent: () => import('./features/relatorios/relatorios.component').then(m => m.RelatoriosComponent)
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
