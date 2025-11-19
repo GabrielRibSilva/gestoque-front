@@ -1,28 +1,33 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { UsuarioRequest, UsuarioResponse } from '../models/usuario.model';
+
+export interface Usuario {
+  id?: number;
+  nomeCompleto: string;
+  email: string;
+  senha?: string;
+  perfil: 'ADMIN' | 'OPERADOR';
+  status?: 'ATIVO' | 'INATIVO';
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsuarioService {
+  private API_URL = 'http://localhost:8080/api/usuarios';
 
-  private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/usuarios';
+  constructor(private http: HttpClient) {}
 
-  constructor() { }
-
-  listar(): Observable<UsuarioResponse[]> {
-    return this.http.get<UsuarioResponse[]>(this.API_URL);
+  listar(): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>(this.API_URL);
   }
 
-  criar(usuario: UsuarioRequest): Observable<UsuarioResponse> {
-    return this.http.post<UsuarioResponse>(this.API_URL, usuario);
-  }
-
-  atualizar(id: number, usuario: UsuarioRequest): Observable<UsuarioResponse> {
-    return this.http.put<UsuarioResponse>(`${this.API_URL}/${id}`, usuario);
+  salvar(usuario: Usuario): Observable<Usuario> {
+    if (usuario.id) {
+      return this.http.put<Usuario>(`${this.API_URL}/${usuario.id}`, usuario);
+    }
+    return this.http.post<Usuario>(this.API_URL, usuario);
   }
 
   excluir(id: number): Observable<void> {

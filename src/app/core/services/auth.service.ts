@@ -1,59 +1,71 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { LoginRequest, LoginResponse, Sessao } from '../models/auth.model';
+import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
+import { Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private API_URL = 'http://localhost:8080/api'; 
+  private usuarioLogado: any = null;
+  private readonly CHAVE_SESSAO = 'gestoque_sessao';
 
-  private http = inject(HttpClient);
-  
-  private readonly API_URL = 'http://localhost:8080/api';
-
-  private static readonly SESSAO_KEY = 'gestoque_sessao';
-
-  private sessaoSubject = new BehaviorSubject<Sessao | null>(this.getSessaoLocal());
-  public sessao$ = this.sessaoSubject.asObservable();
-
-  constructor() { }
-
-  public login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.API_URL}/login`, credentials).pipe(
-      tap(response => this.salvarSessaoLocal(response))
-    );
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.carregarSessao();
   }
 
-  private salvarSessaoLocal(sessao: Sessao): void {
-    localStorage.setItem(AuthService.SESSAO_KEY, JSON.stringify(sessao));
-    this.sessaoSubject.next(sessao);
+  login(credenciais: any): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/login`, credenciais).pipe(
+    tap(response => {
+    this.usuarioLogado = {
+      id: response.id,
+      nome: response.nome || response.nomeCompleto, 
+      email: credenciais.email,
+      perfil: response.perfil || response.role
+    };
+    this.salvarSessaoLocal();
+  })
+);
   }
 
-  public logout(): void {
-    localStorage.removeItem(AuthService.SESSAO_KEY);
-    this.sessaoSubject.next(null);
+  isLoggedIn(): boolean {
+    return !!this.usuarioLogado;
   }
 
-  private getSessaoLocal(): Sessao | null {
-    try {
-      const sessaoJson = localStorage.getItem(AuthService.SESSAO_KEY);
-      return sessaoJson ? JSON.parse(sessaoJson) : null;
-    } catch (e) {
-      localStorage.removeItem(AuthService.SESSAO_KEY);
-      return null;
+  getPerfilUsuario(): string {
+    return this.usuarioLogado ? this.usuarioLogado.perfil : '';
+  }
+
+  logout() {
+    this.usuarioLogado = null;
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(this.CHAVE_SESSAO);
+    }
+    this.router.navigate(['/login']);
+  }
+
+  getSessao() {
+    return this.usuarioLogado;
+  }
+
+  private salvarSessaoLocal() {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(this.CHAVE_SESSAO, JSON.stringify(this.usuarioLogado));
     }
   }
 
-  public getSessao(): Sessao | null {
-    return this.sessaoSubject.value;
-  }
-
-  public isLoggedIn(): boolean {
-    return !!this.getSessao();
-  }
-
-  public getPerfilUsuario(): string | null {
-    return this.getSessao()?.perfil ?? null;
+  private carregarSessao() {
+    if (isPlatformBrowser(this.platformId)) {
+      const sessaoSalva = localStorage.getItem(this.CHAVE_SESSAO);
+      if (sessaoSalva) {
+        this.usuarioLogado = JSON.parse(sessaoSalva);
+      }
+    }
   }
 }

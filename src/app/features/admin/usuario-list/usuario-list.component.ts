@@ -1,17 +1,16 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { UsuarioService } from '../../../core/services/usuario.service';
-import { UsuarioResponse, UsuarioRequest } from '../../../core/models/usuario.model';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { UsuarioService, Usuario } from '../../../core/services/usuario.service';
 
 import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
-import { InputSwitchModule } from 'primeng/inputswitch';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToolbarModule } from 'primeng/toolbar';
 
@@ -19,147 +18,92 @@ import { ToolbarModule } from 'primeng/toolbar';
   selector: 'app-usuario-list',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    TableModule,
-    DialogModule,
-    ButtonModule,
-    InputTextModule,
-    DropdownModule,
-    InputSwitchModule,
-    TagModule,
-    ConfirmDialogModule,
-    ToolbarModule
+    CommonModule, ReactiveFormsModule, TableModule, ButtonModule, 
+    DialogModule, InputTextModule, DropdownModule, TagModule, 
+    ToastModule, ConfirmDialogModule, ToolbarModule
   ],
-  templateUrl: './usuario-list.component.html',
-  styleUrls: ['./usuario-list.component.css'],
-  providers: [ConfirmationService] 
+  templateUrl: './usuario-list.component.html', 
+  providers: [MessageService, ConfirmationService]
 })
-export class UsuarioListComponent implements OnInit {
-
-  private usuarioService = inject(UsuarioService);
-  private messageService = inject(MessageService);
-  private confirmationService = inject(ConfirmationService);
-  private fb = inject(FormBuilder);
-
-  public usuarios: UsuarioResponse[] = [];
-  public loading = true;
-
-  public usuarioDialog = false;
-  public usuarioForm: FormGroup;
-  public isEditMode = false;
-  public currentUserId: number | null = null;
-
-  public perfis = [
+export class UsuarioListComponent implements OnInit { 
+  usuarios: Usuario[] = [];
+  usuarioDialog: boolean = false;
+  form: FormGroup;
+  
+  perfis = [
     { label: 'Administrador', value: 'ADMIN' },
     { label: 'Operador', value: 'OPERADOR' }
   ];
 
-  constructor() {
-    this.usuarioForm = this.fb.group({
+  constructor(
+    private usuarioService: UsuarioService,
+    private fb: FormBuilder,
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
+  ) {
+    this.form = this.fb.group({
+      id: [null],
       nomeCompleto: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      senha: [''],
+      senha: [''], 
       perfil: ['OPERADOR', Validators.required],
-      ativo: [true]
+      status: ['ATIVO'] 
     });
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.carregarUsuarios();
   }
 
   carregarUsuarios() {
-    this.loading = true;
     this.usuarioService.listar().subscribe({
-      next: (data) => {
-        this.usuarios = data;
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar usuários.' });
-      }
+      next: (data) => this.usuarios = data,
+      error: () => this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao listar usuários'})
     });
   }
 
   openNew() {
-    this.usuarioForm.reset({ perfil: 'OPERADOR', ativo: true });
-    this.isEditMode = false;
-    this.currentUserId = null;
+    this.form.reset({ perfil: 'OPERADOR', status: 'ATIVO' });
     this.usuarioDialog = true;
   }
 
-  editUsuario(usuario: UsuarioResponse) {
-    this.usuarioForm.patchValue({
-      nomeCompleto: usuario.nomeCompleto,
-      email: usuario.email,
-      perfil: usuario.perfil,
-      ativo: usuario.ativo,
-      senha: ''
-    });
-    this.isEditMode = true;
-    this.currentUserId = usuario.id;
+  editUsuario(user: Usuario) {
+    this.form.patchValue(user);
+    this.form.controls['senha'].setValue(''); 
     this.usuarioDialog = true;
   }
 
-  deleteUsuario(usuario: UsuarioResponse) {
+  deleteUsuario(user: Usuario) {
     this.confirmationService.confirm({
-      message: `Tem certeza que deseja excluir ${usuario.nomeCompleto}?`,
-      header: 'Confirmar Exclusão',
+      message: `Excluir ${user.nomeCompleto}?`,
+      header: 'Confirmar',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.usuarioService.excluir(usuario.id).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Usuário excluído' });
-            this.carregarUsuarios();
-          },
-          error: () => {
-            this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível excluir' });
-          }
-        });
+        if(user.id) {
+            this.usuarioService.excluir(user.id).subscribe(() => {
+                this.messageService.add({severity:'success', summary:'Sucesso', detail:'Usuário excluído'});
+                this.carregarUsuarios();
+            });
+        }
       }
     });
   }
 
   saveUsuario() {
-    if (this.usuarioForm.invalid) {
-      this.usuarioForm.markAllAsTouched();
-      return;
-    }
+    if (this.form.invalid) return;
 
-    const formValue = this.usuarioForm.value;
-    if (!this.isEditMode && !formValue.senha) {
-       this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Senha é obrigatória para novos usuários.' });
+    if (!this.form.value.id && !this.form.value.senha) {
+       this.messageService.add({severity:'error', summary:'Erro', detail:'Senha é obrigatória para novos usuários'});
        return;
     }
 
-    const request: UsuarioRequest = { ...formValue };
-
-    if (this.isEditMode && this.currentUserId) {
-      this.usuarioService.atualizar(this.currentUserId, request).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Usuário atualizado' });
-          this.usuarioDialog = false;
-          this.carregarUsuarios();
-        },
-        error: (err) => {
-           const msg = err.error || 'Erro ao atualizar';
-           this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
-        }
-      });
-    } else {
-      this.usuarioService.criar(request).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Usuário criado' });
-          this.usuarioDialog = false;
-          this.carregarUsuarios();
-        },
-        error: (err) => {
-           const msg = err.error || 'Erro ao criar';
-           this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
-        }
-      });
-    }
+    this.usuarioService.salvar(this.form.value).subscribe({
+      next: () => {
+        this.messageService.add({severity:'success', summary:'Sucesso', detail:'Usuário salvo'});
+        this.usuarioDialog = false;
+        this.carregarUsuarios();
+      },
+      error: () => this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao salvar'})
+    });
   }
 }

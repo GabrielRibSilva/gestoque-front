@@ -1,110 +1,63 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router'; 
 import { AuthService } from '../../services/auth.service';
-import { PerfilUsuario, Sessao } from '../../models/auth.model';
 
-import { ToolbarModule } from 'primeng/toolbar';
-import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
-import { MenuItem } from 'primeng/api';
-import { SidebarModule } from 'primeng/sidebar'; 
-import { AvatarModule } from 'primeng/avatar'; 
+import { ButtonModule } from 'primeng/button';
+import { AvatarModule } from 'primeng/avatar';
+import { TagModule } from 'primeng/tag';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
-    ToolbarModule,
-    ButtonModule,
+    RouterModule, 
     MenuModule,
-    SidebarModule,
-    AvatarModule
+    ButtonModule,
+    AvatarModule,
+    TagModule
   ],
   templateUrl: './main-layout.component.html',
-  styleUrls: ['./main-layout.component.css']
+  styleUrls: ['./main-layout.component.css'] 
 })
-export class MainLayoutComponent implements OnInit {
+export class MainLayoutComponent {
+  sessao: any;
+  sidebarItems: any[] = [];
+  userMenuItems: any[] = [];
 
-  private authService = inject(AuthService);
-  private router = inject(Router);
-
-  public sessao: Sessao | null = null;
-  
-  public sidebarItems: MenuItem[] = [];
-  
-  public userMenuItems: MenuItem[] = [];
-
-  public sidebarVisible = true; 
-
-  ngOnInit(): void {
-    this.sessao = this.authService.getSessao();
-    this.construirMenuLateral();
-    this.construirMenuUsuario();
+  constructor(private auth: AuthService, private router: Router) {
+    this.sessao = this.auth.getSessao();
+    console.log('DEBUG PERFIL:', this.sessao?.perfil); 
+    this.configurarMenu();
   }
 
-  private construirMenuLateral(): void {
-    const perfil = this.sessao?.perfil;
+  configurarMenu() {
+    this.userMenuItems = [
+      { label: 'Sair', icon: 'pi pi-power-off', command: () => this.logout() }
+    ];
 
     this.sidebarItems = [
-      {
-        label: 'Dashboard',
-        icon: 'pi pi-home',
-        routerLink: ['/dashboard']
-      }
+      { label: 'Home', icon: 'pi pi-home', routerLink: ['/'] }
     ];
 
-    if (perfil === PerfilUsuario.ADMIN) {
+    if (this.sessao?.perfil === 'ADMIN') {
       this.sidebarItems.push(
-        {
-          label: 'Administração',
-          items: [
-            { label: 'Usuários', icon: 'pi pi-users', routerLink: ['/usuarios'] },
-            { label: 'Produtos', icon: 'pi pi-box', routerLink: ['/produtos'] },
-            { label: 'Estoque (Entrada/Ajuste)', icon: 'pi pi-arrow-right-arrow-left', routerLink: ['/estoque'] }
-          ]
-        },
-        {
-          label: 'Relatórios',
-          items: [
-            { label: 'Vendas', icon: 'pi pi-chart-line', routerLink: ['/relatorios'] }
-          ]
-        }
+        { label: 'Usuários', icon: 'pi pi-users', routerLink: ['/admin/usuarios'] },
+        { label: 'Produtos', icon: 'pi pi-box', routerLink: ['/admin/produtos'] },
+        { label: 'Estoque', icon: 'pi pi-arrow-right-arrow-left', routerLink: ['/admin/estoque'] }
+      );
+    } else {
+      this.sidebarItems.push(
+        { label: 'Caixa / Venda', icon: 'pi pi-shopping-cart', routerLink: ['/operador/caixa'] }
       );
     }
 
-    if (perfil === PerfilUsuario.OPERADOR) {
-      this.sidebarItems.push(
-        {
-          label: 'Operação',
-          items: [
-            { label: 'Caixa / Venda', icon: 'pi pi-shopping-cart', routerLink: ['/vendas'] }
-          ]
-        },
-        {
-          label: 'Relatórios',
-          items: [
-            { label: 'Minhas Vendas', icon: 'pi pi-list', routerLink: ['/relatorios'] }
-          ]
-        }
-      );
-    }
+    this.sidebarItems.push({ label: 'Relatórios', icon: 'pi pi-chart-bar', routerLink: ['/relatorios'] });
   }
 
-  private construirMenuUsuario(): void {
-    this.userMenuItems = [
-      {
-        label: 'Sair',
-        icon: 'pi pi-power-off',
-        command: () => this.logout()
-      }
-    ];
-  }
-
-  public logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+  logout() {
+    this.auth.logout();
   }
 }

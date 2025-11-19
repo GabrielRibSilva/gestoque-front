@@ -1,1 +1,69 @@
-<p>dashboard-home works!</p>
+<div class="dashboard-container">
+  
+  <div class="welcome-card">
+      <div class="flex-between">
+          <div>
+              <h2 style="margin:0 0 10px 0; color:#4b5563;">Olá, {{nomeUsuario}}!</h2>
+              <div style="font-size: 1.2rem; font-weight: bold; color:#111827;">Bem-vindo ao Gestoque</div>
+          </div>
+          <div class="icon-box bg-blue">
+              <i class="pi pi-home"></i>
+          </div>
+      </div>
+      <div style="color:#6b7280;">
+          Seu perfil é: <strong style="color:#3b82f6;">{{ perfil }}</strong>
+      </div>
+  </div>
+
+  <div class="shortcuts-grid">
+    
+    <div class="shortcut-card" *ngIf="isAdmin" routerLink="/admin/produtos">
+        <div class="flex-between">
+            <div>
+                <h3>Produtos</h3>
+                <p>Gerenciar Catálogo</p>
+            </div>
+            <div class="icon-box bg-orange">
+                <i class="pi pi-box"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="shortcut-card" *ngIf="isAdmin" routerLink="/admin/estoque">
+        <div class="flex-between">
+            <div>
+                <h3>Estoque</h3>
+                <p>Entradas e Ajustes</p>
+            </div>
+            <div class="icon-box bg-cyan">
+                <i class="pi pi-arrow-right-arrow-left"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="shortcut-card" routerLink="/operador/caixa">
+        <div class="flex-between">
+            <div>
+                <h3>PDV</h3>
+                <p>Caixa / Venda</p>
+            </div>
+            <div class="icon-box bg-green">
+                <i class="pi pi-shopping-cart"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="shortcut-card" routerLink="/relatorios">
+        <div class="flex-between">
+            <div>
+                <h3>Relatórios</h3>
+                <p>Consultar Vendas</p>
+            </div>
+            <div class="icon-box bg-purple">
+                <i class="pi pi-chart-bar"></i>
+            </div>
+        </div>
+    </div>
+
+  </div>
+</div>

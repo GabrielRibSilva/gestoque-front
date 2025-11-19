@@ -1,13 +1,23 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { MovimentacaoRequest } from '../models/estoque.model';
+import { Observable } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+export interface MovimentacaoRequest {
+  produtoId: number;
+  tipo: 'ENTRADA' | 'AJUSTE' | 'SAIDA';
+  quantidade: number;
+  observacao?: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
 export class EstoqueService {
-  private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/estoque';
+  private API_URL = 'http://localhost:8080/api/estoque';
 
-  movimentar(req: MovimentacaoRequest) {
-    return this.http.post(${this.API_URL}/movimentar, req);
+  constructor(private http: HttpClient) {}
+
+  movimentar(req: MovimentacaoRequest): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/movimentar`, req);
   }
 }

@@ -1,17 +1,32 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { VendaRequest } from '../models/venda.model';
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class VendaService {
-  private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/vendas';
+  private API_URL = 'http://localhost:8080/api/vendas';
 
-  registrar(venda: VendaRequest) {
-    return this.http.post(this.API_URL, venda);
+  constructor(private http: HttpClient) {}
+
+  registrar(venda: any): Observable<any> {
+    return this.http.post<any>(this.API_URL, venda);
   }
 
-  getRelatorio(params: any) {
-    return this.http.get(http://localhost:8080/api/relatorios/vendas, { params });
+  listarVendas(filtros?: any): Observable<any[]> {
+    let params = new HttpParams();
+
+    if (filtros) {
+      if (filtros.inicio) {
+        params = params.set('dataInicio', new Date(filtros.inicio).toISOString());
+      }
+      
+      if (filtros.fim) {
+        params = params.set('dataFim', new Date(filtros.fim).toISOString());
+      }
+    }
+
+    return this.http.get<any[]>(this.API_URL, { params });
   }
 }

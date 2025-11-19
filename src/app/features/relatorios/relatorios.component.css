@@ -1,0 +1,50 @@
+.grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -0.5rem;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+}
+
+.col-12 {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    padding: 0.5rem;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .md\:col-4 {
+        flex: 0 0 auto;
+        width: 33.3333%;
+    }
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.gap-3 {
+    gap: 1rem;
+}
+
+.align-items-end {
+    align-items: flex-end;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+:host ::ng-deep .p-calendar {
+    width: 100%;
+    min-width: 200px;
+}
+
+:host ::ng-deep .p-inputtext {
+    width: 100%;
+}

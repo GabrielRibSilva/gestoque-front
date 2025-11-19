@@ -1,0 +1,33 @@
+.field {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+label {
+    font-weight: 600;
+    color: #374151;
+}
+
+:host ::ng-deep .p-dropdown {
+    width: 100%;
+}
+
+:host ::ng-deep .p-inputnumber {
+    width: 100%;
+}
+
+:host ::ng-deep .p-inputnumber-input {
+    width: 100%;
+}
+
+textarea {
+    width: 100%;
+    resize: vertical;
+}
+
+button {
+    width: 100%;
+    margin-top: 1rem;
+}

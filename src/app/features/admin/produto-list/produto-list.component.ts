@@ -1,99 +1,131 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { ProdutoService } from '../../../core/services/produto.service';
-import { ProdutoResponse } from '../../../core/models/produto.model';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { ProdutoService, Produto } from '../../../core/services/produto.service';
 
-// Imports PrimeNG
 import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
+import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToolbarModule } from 'primeng/toolbar';
-import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { TagModule } from 'primeng/tag'; 
 
 @Component({
   selector: 'app-produto-list',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, TableModule, DialogModule, ButtonModule, 
-    InputTextModule, InputNumberModule, ConfirmDialogModule, ToolbarModule, TagModule
+    CommonModule, TableModule, ButtonModule, ToastModule, ConfirmDialogModule,
+    ToolbarModule, DialogModule, InputTextModule, InputNumberModule, TagModule,
+    ReactiveFormsModule, FormsModule
   ],
   templateUrl: './produto-list.component.html',
-  styles: ['.field { margin-bottom: 1rem; }'],
-  providers: [ConfirmationService]
+  providers: [MessageService, ConfirmationService]
 })
 export class ProdutoListComponent implements OnInit {
-  private produtoService = inject(ProdutoService);
-  private messageService = inject(MessageService);
-  private confirmationService = inject(ConfirmationService);
-  private fb = inject(FormBuilder);
+  produtos: Produto[] = [];
+  loading: boolean = true;
+  produtoDialog: boolean = false;
+  produtoForm: FormGroup; 
 
-  produtos: ProdutoResponse[] = [];
-  produtoDialog = false;
-  produtoForm: FormGroup;
-  isEditMode = false;
-  currentId: number | null = null;
-  loading = true;
-
-  constructor() {
+  constructor(
+    private produtoService: ProdutoService,
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService,
+    private fb: FormBuilder
+  ) {
     this.produtoForm = this.fb.group({
-      codigoProduto: ['', Validators.required],
-      nome: ['', Validators.required],
+      id: [null],
+      codigoProduto: ['', Validators.required], 
+      nome: ['', Validators.required],         
       categoria: [''],
-      precoUnitario: [0, [Validators.required, Validators.min(0.01)]]
+      precoUnitario: [0, [Validators.required, Validators.min(0.01)]],
+      quantidadeEstoque: [0, [Validators.required, Validators.min(0)]] 
     });
   }
 
-  ngOnInit() { this.carregar(); }
+  ngOnInit() {
+    this.carregarProdutos();
+  }
 
-  carregar() {
+  carregarProdutos() {
     this.loading = true;
     this.produtoService.listar().subscribe({
-      next: (data) => { this.produtos = data; this.loading = false; },
-      error: () => { this.msg('error', 'Erro ao carregar produtos'); this.loading = false; }
+      next: (data) => {
+        this.produtos = data;
+        this.loading = false;
+      },
+      error: (e) => {
+        this.loading = false;
+        console.error('Erro listar:', e);
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar lista' });
+      }
     });
   }
 
   openNew() {
     this.produtoForm.reset();
-    this.isEditMode = false;
+    this.produtoForm.patchValue({ precoUnitario: 0, quantidadeEstoque: 0 });
     this.produtoDialog = true;
   }
 
-  edit(prod: ProdutoResponse) {
+  edit(prod: Produto) {
     this.produtoForm.patchValue(prod);
-    this.currentId = prod.id;
-    this.isEditMode = true;
     this.produtoDialog = true;
   }
 
-  delete(prod: ProdutoResponse) {
+  delete(prod: Produto) {
     this.confirmationService.confirm({
-      message: 'Excluir ' + prod.nome + '?',
+      message: 'Tem certeza que deseja excluir ' + prod.nome + '?',
+      header: 'Confirmar',
+      icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.produtoService.excluir(prod.id).subscribe({
-          next: () => { this.msg('success', 'Excluído'); this.carregar(); },
-          error: () => this.msg('error', 'Erro ao excluir (verifique se há vendas vinculadas)')
-        });
+        if (prod.id) {
+          this.produtoService.excluir(prod.id).subscribe(() => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Produto excluído' });
+            this.carregarProdutos();
+          });
+        }
       }
     });
   }
 
   save() {
-    if (this.produtoForm.invalid) return;
-    const req = this.produtoForm.value;
-    const obs = this.isEditMode ? this.produtoService.atualizar(this.currentId!, req) : this.produtoService.criar(req);
-    
-    obs.subscribe({
-      next: () => { this.msg('success', 'Salvo com sucesso'); this.produtoDialog = false; this.carregar(); },
-      error: (e) => this.msg('error', e.error || 'Erro ao salvar')
+    if (this.produtoForm.invalid) {
+      console.warn('Formulário Inválido:', this.produtoForm);
+      Object.keys(this.produtoForm.controls).forEach(key => {
+        this.produtoForm.get(key)?.markAsDirty();
+      });
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Preencha os campos obrigatórios (Código, Nome, Preço)' });
+      return;
+    }
+
+    const produto = this.produtoForm.value;
+
+    this.produtoService.salvar(produto).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Produto salvo com sucesso!' });
+        this.produtoDialog = false;
+        this.carregarProdutos();
+      },
+      error: (err) => {
+        console.error('Erro Backend:', err);
+        const msgErro = err.error || 'Erro desconhecido ao salvar';
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: msgErro });
+      }
     });
   }
 
-  getSeverity(qtd: number) { return qtd > 10 ? 'success' : qtd > 0 ? 'warning' : 'danger'; }
-  msg(sev: string, det: string) { this.messageService.add({ severity: sev, summary: sev, detail: det }); }
+  hideDialog() {
+    this.produtoDialog = false;
+  }
+
+  getSeverity(qtd: number): "success" | "warning" | "danger" | undefined {
+    if (qtd > 10) return 'success';
+    if (qtd > 0) return 'warning';
+    return 'danger';
+  }
 }

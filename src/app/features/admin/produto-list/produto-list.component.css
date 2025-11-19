@@ -1,0 +1,24 @@
+:host ::ng-deep .p-toolbar {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+:host ::ng-deep .p-button {
+    margin-right: .5rem;
+}
+
+:host ::ng-deep .p-dialog .p-button {
+    min-width: 6rem;
+}
+
+.field {
+    margin-bottom: 1.5rem;
+}
+
+.field > label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}

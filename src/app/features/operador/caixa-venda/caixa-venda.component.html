@@ -1,41 +1,90 @@
 <div class="grid">
-  <div class="col-12 md:col-7">
-    <p-card header="Adicionar Produto">
-      <div class="flex gap-2 mb-3">
-        <p-dropdown [options]="produtosDisponiveis" [(ngModel)]="produtoSelecionado" optionLabel="label" [filter]="true" placeholder="Buscar Produto..." styleClass="w-full"></p-dropdown>
-        <p-inputNumber [(ngModel)]="quantidade" [min]="1" [showButtons]="true" buttonLayout="horizontal" size="3"></p-inputNumber>
-        <p-button icon="pi pi-plus" (onClick)="adicionarAoCarrinho()" [disabled]="!produtoSelecionado"></p-button>
-      </div>
-      
-      <p-table [value]="carrinho" [scrollable]="true" scrollHeight="300px" styleClass="mt-3">
-        <ng-template pTemplate="header">
-          <tr><th>Produto</th><th>Qtd</th><th>Subtotal</th></tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-item>
-          <tr>
-            <td>{{item.nome}}</td>
-            <td>{{item.quantidade}}</td>
-            <td>{{item.subtotal | currency:'BRL'}}</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </p-card>
-  </div>
+    <div class="col-12 md:col-8">
+        <div class="card h-full">
+            <h2 class="mb-4 text-primary">Caixa / Nova Venda</h2>
+            
+            <div class="formgrid grid align-items-end mb-4">
+                <div class="field col-12 md:col-6">
+                    <label>Produto</label>
+                    <p-dropdown [options]="produtosDisponiveis" [(ngModel)]="produtoSelecionado" 
+                                placeholder="Selecione um produto" 
+                                [filter]="true" filterBy="label" 
+                                [showClear]="true" styleClass="w-full"></p-dropdown>
+                </div>
+                <div class="field col-12 md:col-3">
+                    <label>Quantidade</label>
+                    <p-inputNumber [(ngModel)]="quantidade" [min]="1" [showButtons]="true" 
+                                   buttonLayout="horizontal" styleClass="w-full"></p-inputNumber>
+                </div>
+                <div class="field col-12 md:col-3">
+                    <p-button label="Adicionar" icon="pi pi-plus" (onClick)="adicionarAoCarrinho()" 
+                              [disabled]="!produtoSelecionado"></p-button>
+                </div>
+            </div>
 
-  <div class="col-12 md:col-5">
-    <p-card header="Pagamento" styleClass="surface-50">
-      <div class="text-4xl font-bold mb-4 text-primary">Total: {{ totalVenda | currency:'BRL' }}</div>
-      
-      <div class="mb-3">
-        <label class="block font-bold mb-2">Valor Recebido</label>
-        <p-inputNumber [(ngModel)]="valorRecebido" mode="currency" currency="BRL" locale="pt-BR" styleClass="w-full" class="w-full"></p-inputNumber>
-      </div>
+            <p-divider></p-divider>
 
-      <div class="text-2xl mb-4" *ngIf="valorRecebido">
-        Troco: <span [class.text-red-500]="troco < 0" [class.text-green-500]="troco >= 0">{{ troco | currency:'BRL' }}</span>
-      </div>
+            <p-table [value]="carrinho" [scrollable]="true" scrollHeight="300px">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Produto</th>
+                        <th style="width:100px">Qtd</th>
+                        <th style="width:120px">Unitário</th>
+                        <th style="width:120px">Subtotal</th>
+                        <th style="width:50px"></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item let-i="rowIndex">
+                    <tr>
+                        <td>{{item.nome}}</td>
+                        <td>{{item.quantidade}}</td>
+                        <td>{{item.precoUnitario | currency:'BRL'}}</td>
+                        <td class="font-bold">{{item.subtotal | currency:'BRL'}}</td>
+                        <td>
+                            <p-button icon="pi pi-trash" styleClass="p-button-rounded p-button-danger p-button-text p-button-sm"
+                                      (onClick)="removerDoCarrinho(i)"></p-button>
+                        </td>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="5" class="text-center p-4 text-gray-500">Carrinho vazio. Adicione produtos.</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+    </div>
 
-      <p-button label="FINALIZAR VENDA" styleClass="w-full p-button-lg p-button-success" (onClick)="finalizarVenda()" [disabled]="!valorRecebido || troco < 0"></p-button>
-    </p-card>
-  </div>
+    <div class="col-12 md:col-4">
+        <div class="card h-full surface-50">
+            <div class="flex flex-column gap-4">
+                
+                <div class="text-center p-3 bg-white border-round shadow-1">
+                    <span class="text-600 block mb-2">Total a Pagar</span>
+                    <span class="text-4xl font-bold text-primary">{{ totalVenda | currency:'BRL' }}</span>
+                </div>
+
+                <div class="field">
+                    <label class="font-bold text-xl">Valor Recebido (R$)</label>
+                    <p-inputNumber [(ngModel)]="valorRecebido" mode="currency" currency="BRL" locale="pt-BR"
+                                   (onInput)="atualizarTroco()" (ngModelChange)="atualizarTroco()"
+                                   placeholder="0,00" class="text-xl w-full" styleClass="w-full p-inputtext-lg"></p-inputNumber>
+                </div>
+
+                <div class="flex justify-content-between align-items-center p-3 border-round" 
+                     [ngClass]="{'bg-green-100 text-green-700': troco >= 0, 'bg-red-100 text-red-700': troco < 0 && valorRecebido}">
+                    <span class="font-medium text-xl">Troco:</span>
+                    <span class="font-bold text-2xl">{{ troco | currency:'BRL' }}</span>
+                </div>
+
+                <p-divider></p-divider>
+
+                <button pButton type="button" label="FINALIZAR VENDA" icon="pi pi-check-circle" 
+                        class="p-button-success p-button-lg w-full"
+                        (click)="finalizarVenda()"
+                        [disabled]="carrinho.length === 0 || !valorRecebido || valorRecebido < totalVenda">
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+<p-toast></p-toast>

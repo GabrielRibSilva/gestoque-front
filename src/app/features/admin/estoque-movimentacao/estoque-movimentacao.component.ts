@@ -1,38 +1,47 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { EstoqueService } from '../../../core/services/estoque.service';
 import { ProdutoService } from '../../../core/services/produto.service';
-import { MessageService } from 'primeng/api';
+
+import { CardModule } from 'primeng/card';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
-  selector: 'app-estoque',
+  selector: 'app-estoque-movimentacao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DropdownModule, InputNumberModule, InputTextareaModule, ButtonModule, CardModule],
+  imports: [
+    CommonModule, ReactiveFormsModule, CardModule, DropdownModule,
+    InputNumberModule, InputTextareaModule, ButtonModule, ToastModule
+  ],
   templateUrl: './estoque-movimentacao.component.html',
-  styles: ['.field { margin-bottom: 1.5rem; }']
+  providers: [MessageService]
 })
 export class EstoqueMovimentacaoComponent implements OnInit {
-  private estoqueService = inject(EstoqueService);
-  private produtoService = inject(ProdutoService);
-  private msg = inject(MessageService);
-  private fb = inject(FormBuilder);
-
   form: FormGroup;
   produtos: any[] = [];
-  tipos = [{label: 'Entrada (Reposição)', value: 'ENTRADA'}, {label: 'Ajuste (Correção)', value: 'AJUSTE'}];
+  
+  tipos = [
+    { label: 'Entrada (Reposição)', value: 'ENTRADA' },
+    { label: 'Ajuste (Correção)', value: 'AJUSTE' }
+  ];
 
-  constructor() {
+  constructor(
+    private fb: FormBuilder,
+    private estoqueService: EstoqueService,
+    private produtoService: ProdutoService,
+    private msg: MessageService
+  ) {
     this.form = this.fb.group({
       produtoId: [null, Validators.required],
       tipo: ['ENTRADA', Validators.required],
-      quantidade: [1, Validators.required],
-      motivo: ['', Validators.required]
+      quantidade: [1, [Validators.required, Validators.min(1)]],
+      observacao: ['']
     });
   }
 
@@ -41,20 +50,37 @@ export class EstoqueMovimentacaoComponent implements OnInit {
   }
 
   carregarProdutos() {
-    this.produtoService.listar().subscribe(data => 
-      this.produtos = data.map(p => ({label: ${p.codigoProduto} - ${p.nome} (Atual: ${p.quantidadeEstoque}), value: p.id}))
-    );
+    this.produtoService.listar().subscribe({
+      next: (data) => {
+        this.produtos = data.map(p => ({
+          label: `${p.codigoProduto} - ${p.nome} (Saldo: ${p.quantidadeEstoque})`,
+          value: p.id 
+        }));
+      },
+      error: () => this.msg.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar lista de produtos' })
+    });
   }
 
   submit() {
     if (this.form.invalid) return;
+
     this.estoqueService.movimentar(this.form.value).subscribe({
       next: () => {
-        this.msg.add({severity:'success', summary:'Sucesso', detail:'Estoque atualizado'});
-        this.form.reset({tipo: 'ENTRADA', quantidade: 1});
-        this.carregarProdutos(); // Atualiza os labels com novo saldo
+        this.msg.add({ severity: 'success', summary: 'Sucesso', detail: 'Movimentação registrada!' });
+        
+        this.form.reset();
+        
+        this.form.patchValue({ 
+            tipo: 'ENTRADA', 
+            quantidade: 1 
+        });
+        
+        this.carregarProdutos(); 
       },
-      error: (e) => this.msg.add({severity:'error', summary:'Erro', detail: e.error})
+      error: (err) => {
+        console.error(err);
+        this.msg.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível registrar a movimentação.' });
+      }
     });
   }
 }
